@@ -15,9 +15,15 @@ import { createQueryClient } from "./query-client";
 const createContext = cache(() => {
   const heads = new Headers(headers());
   heads.set("x-trpc-source", "rsc");
+  const authToken = heads.get("Authorization")?.split(" ")[1];
+  const refreshToken = heads.get("X-Refresh-Token");
+
+
 
   return createTRPCContext({
     headers: heads,
+    authToken: authToken ?? undefined,
+    refreshToken: refreshToken ?? undefined,
   });
 });
 

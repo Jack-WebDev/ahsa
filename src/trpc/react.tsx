@@ -9,6 +9,7 @@ import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
+import { getTokensFromCookies } from "~/helpers/tokens";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
@@ -53,11 +54,14 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+            const { authToken, refreshToken } = getTokensFromCookies();
+            if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
+            if (refreshToken) headers.set("X-Refresh-Token", refreshToken);
             return headers;
           },
         }),
       ],
-    })
+    }),
   );
 
   return (
