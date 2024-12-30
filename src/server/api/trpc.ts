@@ -43,6 +43,7 @@ export const createTRPCContext = async (opts: { headers: Headers, authToken?: st
       refreshToken,
     };
   } catch (error) {
+    console.log(error)
     if (error instanceof TRPCError) throw error;
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -175,4 +176,4 @@ async function refreshTokens(userId = "jhfhfdfdsf"): Promise<TokenPair> {
 }
 
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(authMiddleware);
+// export const protectedProcedure = t.procedure.use(authMiddleware);
