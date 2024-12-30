@@ -11,29 +11,9 @@ export const createTRPCContext = async (opts: { headers: Headers, authToken?: st
   try {
     const authToken = await getAuthCookie();
     const refreshToken = await getRefreshTokenCookie();
-    if (!authToken) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "No valid authentication token found",
-      });
-    }
 
-    const authResponse = await getAuth(authToken);
-    if (!authResponse) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Authentication validation failed",
-      });
-    }
 
-    const auth = authResponse as AuthUserType;
-
-    if (auth.exp * 1000 < Date.now()) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Authentication token has expired",
-      });
-    }
+    const auth = await getAuth(authToken!) as AuthUserType;
 
     return {
       db,
@@ -53,7 +33,12 @@ export const createTRPCContext = async (opts: { headers: Headers, authToken?: st
   }
 };
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+export type Context =
+  ReturnType<typeof createTRPCContext> extends Promise<infer T>
+    ? T
+    : ReturnType<typeof createTRPCContext>;
+
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {

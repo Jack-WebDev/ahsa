@@ -17,6 +17,11 @@ import { useState } from "react";
 import Loader from "~/components/Loader";
 import Link from "next/link";
 import Image from "next/image";
+import { clientApi } from "~/trpc/react";
+import { toast } from "react-toastify";
+import { setCookie } from "cookies-next";
+import { config } from "~/config";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -28,6 +33,7 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,9 +43,34 @@ export default function LoginForm() {
     },
   });
 
+  const loginMutation = clientApi.user.login.useMutation({
+    onSuccess: (data) => {
+      console.log(data)
+        setCookie('accessToken', data.accessToken, {
+          path: '/',
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 5
+        });
+        
+        setCookie('refreshToken', data.refreshToken, {
+          path: '/',
+          secure: true,
+          sameSite: 'strict',
+          maxAge: config.duration.refreshTokenExp
+        });
+
+        router.push("/dashboard");
+    },
+    onError: (error) => {
+      console.log(error)
+      toast.error(error.message)
+    },
+  })
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    console.log(values);
+    loginMutation.mutate(values);
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);

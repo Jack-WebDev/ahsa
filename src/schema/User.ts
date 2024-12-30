@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export enum Gender {
   Male = "Male",
   Female = "Female",
@@ -68,3 +70,26 @@ export enum EmploymentType {
   Internship = "Internship",
   Other = "Other",
 }
+
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
+export const RegisterSchema = z.object({
+  name: z.string(),
+  surname: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  phoneNumber: z.string(),
+  idNumber: z.string(),
+  dateOfBirth: z.string(),
+  ethnicity: z.nativeEnum(Ethnicity),
+  gender: z.nativeEnum(Gender),
+  title: z.nativeEnum(Title),
+  province: z.nativeEnum(Province),
+});
+
+
+export type LoginSchemaType = z.infer<typeof LoginSchema>;
+export type RegisterSchemaType = z.infer<typeof RegisterSchema>;

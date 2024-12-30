@@ -1,18 +1,19 @@
 import jwt from "jsonwebtoken";
 import { TRPCError } from "@trpc/server";
 import { type TokenPayload } from "~/types";
-import { setCookie, getCookie } from "cookies-next";
+import { getCookie } from "cookies-next";
+import { config } from "~/config";
 
 export const tokenHelpers = {
   generateAccessToken: (payload: TokenPayload): string => {
-    return jwt.sign(payload, process.env.JWT_SECRET!, {
-      expiresIn: "15m",
+    return jwt.sign(payload, config.env.secrets.accessSecret, {
+      expiresIn: 5,
     });
   },
 
   generateRefreshToken: (payload: TokenPayload): string => {
-    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!, {
-      expiresIn: "7d",
+    return jwt.sign(payload, config.env.secrets.refreshSecret, {
+      expiresIn: config.duration.refreshTokenExp,
     });
   },
 
@@ -41,7 +42,18 @@ export const getTokensFromCookies = () => {
   return { authToken, refreshToken };
 };
 
-export const setTokensInCookies = (authToken: string, refreshToken: string) => {
-  setCookie("authToken", authToken);
-  setCookie("refreshToken", refreshToken);
-};
+// export const setTokensInCookies = (authToken: string, refreshToken: string) => {
+//   setCookie('accessToken', authToken, {
+//     path: '/',
+//     secure: true,
+//     sameSite: 'strict',
+//     maxAge: config.duration.authTokenExp
+//   });
+  
+//   setCookie('refreshToken', refreshToken, {
+//     path: '/',
+//     secure: true,
+//     sameSite: 'strict',
+//     maxAge: config.duration.refreshTokenExp
+//   });
+// };

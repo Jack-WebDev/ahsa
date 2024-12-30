@@ -19,7 +19,7 @@ export const config = {
     },
   },
   duration: {
-    accessTokenExp: 60 * 60 * 2 * 1000,
+    accessTokenExp: 5 * 1000,
     refreshTokenExp: 60 * 60 * 60 * 24 * 7 * 1000,
     authTokenExp: 60 * 60 * 2 * 1000,
   },

@@ -16,7 +16,6 @@ import { Input } from "~/components/ui/input";
 import { useState } from "react";
 import Loader from "~/components/Loader";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -25,12 +24,10 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Ethnicity, Gender, Province, Title } from "~/schema/User";
-import { Popover, PopoverTrigger } from "~/components/ui/popover";
-import { PopoverContent } from "@radix-ui/react-popover";
-import { Calendar } from "~/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
 import { Textarea } from "~/components/ui/textarea";
 import Image from "next/image";
+import { clientApi } from "~/trpc/react";
+import { toast } from "react-toastify";
 
 const formSchema = z
   .object({
@@ -53,9 +50,12 @@ const formSchema = z
       message: "Invalid email address",
     }),
     province: z.nativeEnum(Province),
-    dob: z.date({
-      message: "Date of birth required",
-    }),
+    dateOfBirth: z
+    .string().min(1,{message: "Date of birth is required"})
+    .regex(
+      /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
+      "Date of Birth must be in the format YYYY-MM-DD"
+    ),
     password: z.string().min(5, {
       message: "Password must be at least 5 characters",
     }),
@@ -82,7 +82,7 @@ export default function RegisterForm() {
       name: "",
       surname: "",
       gender: Gender.Other,
-      dob: new Date(),
+      dateOfBirth: "",
       email: "",
       password: "",
       ethnicity: Ethnicity.Other,
@@ -94,12 +94,26 @@ export default function RegisterForm() {
     },
   });
 
+  const registerMutation = clientApi.user.register.useMutation({
+    onSuccess: (data) => {
+      console.log(data)
+    },
+    onError: (error) => {
+      console.log(error)
+      toast.error(error.message)
+    },
+  })
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     console.log(values);
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
+
+
+
+    registerMutation.mutate(values);
   };
 
   const handleBackToLogin = () => {
@@ -285,39 +299,21 @@ export default function RegisterForm() {
 
           {/* Date of Birth and ID Number Fields */}
           <div className="grid grid-cols-1 gap-y-6 md:grid-cols-2 md:gap-x-6">
-            <FormField
+          <FormField
               control={form.control}
-              name="dob"
+              name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-medium text-gray-700">
-                    Date of Birth
+                    Date of Birth (YYYY-MM-DD)
                   </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full rounded-md border-gray-300 text-left"
-                        >
-                          {field.value
-                            ? format(field.value, "PPP")
-                            : "Pick a date"}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <Input
+                      placeholder="YYYY-MM-DD"
+                      className="rounded-md border-gray-300 focus:border-primary focus:ring-primary"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage style={{ color: "red" }} />
                 </FormItem>
               )}
