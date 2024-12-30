@@ -15,6 +15,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
 import Loader from "~/components/Loader";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -79,7 +80,7 @@ export default function LoginForm() {
               </FormItem>
             )}
           />
-          
+          <Link href={"/auth/forgot-password"}>Forgot Password</Link>
           {isLoading ? <Loader /> : <Button type="submit" className="w-full">Login</Button>}
         </form>
       </Form>
