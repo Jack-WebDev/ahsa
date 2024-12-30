@@ -176,4 +176,4 @@ async function refreshTokens(userId = "jhfhfdfdsf"): Promise<TokenPair> {
 }
 
 export const publicProcedure = t.procedure;
-// export const protectedProcedure = t.procedure.use(authMiddleware);
+export const protectedProcedure = t.procedure.use(authMiddleware);
